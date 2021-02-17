@@ -3,7 +3,7 @@ using Advertisement.Application.Repositories;
 using Advertisement.Domain;
 using Advertisement.Infrastructure.DataAccess;
 using Advertisement.Infrastructure.DataAccess.Repositories;
-//using Advertisement.Infrastructure.Migrations;
+using Advertisement.Infrastructure.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using InMemoryRepository = Advertisement.Infrastructure.DataAccess.Repositories.InMemoryRepository;
@@ -40,32 +40,35 @@ namespace Advertisement.Infrastructure
 
         public static void InSqlServer(this ModuleConfiguration moduleConfiguration, string connectionString)
         {
-            moduleConfiguration.Services.AddDbContextPool<DatabaseContext>(options =>
-            {
-                options.UseSqlServer(connectionString, builder =>
+            moduleConfiguration.Services
+                .AddDbContextPool<DatabaseContext>(options =>
+            { 
+                options.
+                    UseSqlServer(connectionString, builder =>
                     builder.MigrationsAssembly(
-                        typeof( DataAccessModule).Assembly.FullName)
-                       // typeof(DatabaseContextModelSnapshot).Assembly.FullName)
+                        //typeof( DataAccessModule).Assembly.FullName)
+                        typeof(DatabaseContextModelSnapshot).Assembly.FullName)
                 );
             });
         
-            moduleConfiguration.Services.AddScoped<IRepository<Ad, int>, EfRepository<Ad, int>>();
-            moduleConfiguration.Services.AddScoped<IRepository<User, int>, EfRepository<User, int>>();
+            moduleConfiguration.Services.AddScoped<IAdRepository, AdRepository>();
+
+            moduleConfiguration.Services.AddScoped(typeof(IRepository<,>), typeof(EfRepository<,>));
         }
 
-        public static void InPostgress(this ModuleConfiguration moduleConfiguration, string connectionString)
-        {
-        moduleConfiguration.Services.AddDbContextPool<DatabaseContext>(options =>
-        {
-            options.UseNpgsql(connectionString, builder =>
-                builder.MigrationsAssembly(
-                    typeof( DataAccessModule).Assembly.FullName)
-                    //typeof(DatabaseContextModelSnapshot).Assembly.FullName)
-            );
-        });
-        
-        moduleConfiguration.Services.AddScoped<IRepository<Ad, int>, EfRepository<Ad, int>>();
-        moduleConfiguration.Services.AddScoped<IRepository<User, int>, EfRepository<User, int>>();
-        }
+        // public static void InPostgress(this ModuleConfiguration moduleConfiguration, string connectionString)
+        // {
+        // moduleConfiguration.Services.AddDbContextPool<DatabaseContext>(options =>
+        // {
+        //     options.UseNpgsql(connectionString, builder =>
+        //         builder.MigrationsAssembly(
+        //             //typeof( DataAccessModule).Assembly.FullName)
+        //             //typeof(DatabaseContextModelSnapshot).Assembly.FullName)
+        //     );
+        // });
+        //
+        // moduleConfiguration.Services.AddScoped<IRepository<Ad, int>, EfRepository<Ad, int>>();
+        // moduleConfiguration.Services.AddScoped<IRepository<User, int>, EfRepository<User, int>>();
+        // }
     }
 }

@@ -24,16 +24,18 @@ namespace Advertisement.PublicApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-
-           
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+            
             services
                 .AddApplicationModule()
                 .AddHttpContextAccessor()
                 .AddInfrastructureModule(configuration => configuration.IdentityFromHttpContext())
                 
                 
-                .AddDataAccessModule(configuration => 
+                .AddDataAccessModule(configuration =>
+                        
                     //configuration.InMemory()
                     configuration.InSqlServer(Configuration.GetConnectionString("SqlServerDb"))
                     //configuration.InPostgress(Configuration.GetConnectionString("PostgresDb"))

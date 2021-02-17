@@ -1,4 +1,7 @@
-﻿namespace Advertisement.Application.Services.Ad.Contracts
+﻿using System.Collections.Generic;
+using Advertisement.Domain;
+
+namespace Advertisement.Application.Services.Ad.Contracts
 {
     public static class Pay
     {
@@ -28,6 +31,8 @@
             public decimal Price { get; set; }
             
             public OwnerResponse Owner { get; set; }
+            
+            public Category Category { get; set; }
         }
     }
 }

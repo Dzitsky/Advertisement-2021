@@ -11,11 +11,19 @@ namespace Advertisement.Domain
             Closed
         }
         
-        public string Name { get; set; }
+        public string FirstName { get; set; }
+        
+        public string LastName { get; set; }
+        
+        /// <summary>
+        /// Цена
+        /// </summary>
         public decimal Price { get; set; }
         
         public int OwnerId { get; set; }
         public User Owner { get; set; }
         public Statuses Status { get; set; }
+        
+        public Category Category { get; set; }
     }
 }

@@ -10,6 +10,12 @@ namespace Advertisement.PublicApi.Controllers.Advertisement
 {
     public partial class AdvertisementController
     {
+        /// <summary>
+        /// Получение всех закупок
+        /// </summary>
+        /// <param name="request">Dto объявления</param>
+        /// <param name="cancellationToken">cancellationToken</param>
+        /// <returns>Коллекция закупок</returns>
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery]GetAllRequest request, CancellationToken cancellationToken)

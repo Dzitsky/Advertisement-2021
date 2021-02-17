@@ -13,10 +13,10 @@ namespace Advertisement.Application.Services.Ad.Implementations
 {
     public sealed class AdServiceV1 : IAdService
     {
-        private readonly IRepository<Domain.Ad, int> _repository;
+        private readonly IAdRepository _repository;
         private readonly IUserService _userService;
 
-        public AdServiceV1(IUserService userService, IRepository<Domain.Ad, int> repository)
+        public AdServiceV1(IUserService userService, IAdRepository repository)
         {
             _userService = userService;
             _repository = repository;
@@ -27,7 +27,8 @@ namespace Advertisement.Application.Services.Ad.Implementations
             var user = await _userService.GetCurrent(cancellationToken);
             var ad = new Domain.Ad
             {
-                Name = request.Name,
+                FirstName = request.Name,
+                LastName = request.Name,
                 Price = request.Price,
                 Status = Domain.Ad.Statuses.Created,
                 OwnerId = user.Id,
@@ -76,7 +77,7 @@ namespace Advertisement.Application.Services.Ad.Implementations
 
         public async Task<Get.Response> Get(Get.Request request, CancellationToken cancellationToken)
         {
-            var ad = await _repository.FindById(request.Id, cancellationToken);
+            var ad = await _repository.FindByIdWithUserInclude(request.Id, cancellationToken);
             if (ad == null)
             {
                 throw new AdNotFoundException(request.Id);
@@ -84,7 +85,7 @@ namespace Advertisement.Application.Services.Ad.Implementations
             
             return new Get.Response
             {
-                Name = ad.Name,
+                Name = $"{ad.FirstName } {ad.LastName }",
                 Owner = new Get.Response.OwnerResponse
                 {
                     Id = ad.Owner.Id,
@@ -122,7 +123,7 @@ namespace Advertisement.Application.Services.Ad.Implementations
                 Items = ads.Select(ad => new GetPaged.Response.AdResponse
                 {
                     Id = ad.Id,
-                    Name = ad.Name,
+                    Name = $"{ad.FirstName} {ad.LastName}",
                     Price = ad.Price,
                     Status = ad.Status.ToString()
                 }),
