@@ -58,7 +58,7 @@ namespace Advertisement.Application.Services.Ad.Implementations
 
         public async Task Delete(Delete.Request request, CancellationToken cancellationToken)
         {
-            var ad = await _repository.FindById(request.Id, cancellationToken);
+            var ad = await _repository.FindByIdWithUserInclude(request.Id, cancellationToken);
             if (ad == null)
             {
                 throw new AdNotFoundException(request.Id);
