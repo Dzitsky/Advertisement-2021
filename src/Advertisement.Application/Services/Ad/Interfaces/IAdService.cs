@@ -16,9 +16,4 @@ namespace Advertisement.Application.Services.Ad.Interfaces
         Task<Get.Response> Get(Get.Request request, CancellationToken cancellationToken);
         Task<GetPaged.Response> GetPaged(GetPaged.Request request, CancellationToken cancellationToken);
     }
-
-    public interface IAdRepository : IRepository<Domain.Ad, int>
-    {
-        Task<Domain.Ad> FindByIdWithUserInclude(int id, CancellationToken cancellationToken);
-    }
 }
