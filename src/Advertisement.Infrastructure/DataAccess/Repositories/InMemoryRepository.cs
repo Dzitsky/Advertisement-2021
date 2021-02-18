@@ -12,9 +12,9 @@ namespace Advertisement.Infrastructure.DataAccess.Repositories
 {
     public sealed class InMemoryRepository : 
         IRepository<Ad, int>,
-        IRepository<User, int>
+        IRepository<User, string>
     {
-        private readonly ConcurrentDictionary<int, User> _users = new();
+        private readonly ConcurrentDictionary<string, User> _users = new();
         private readonly ConcurrentDictionary<int, Ad> _ads = new();
 
         async Task<Ad> IRepository<Ad, int>.FindById(int id, CancellationToken cancellationToken)
@@ -31,9 +31,9 @@ namespace Advertisement.Infrastructure.DataAccess.Repositories
 
         public async Task Save(User entity, CancellationToken cancellationToken)
         {
-            if (entity.Id == 0)
+            if (string.IsNullOrEmpty(entity.Id))
             {
-                entity.Id = Guid.NewGuid().GetHashCode();
+                entity.Id = Guid.NewGuid().ToString();
             }
 
             _users.AddOrUpdate(entity.Id, (e) => entity, (i, user) => entity);
@@ -45,7 +45,7 @@ namespace Advertisement.Infrastructure.DataAccess.Repositories
             return _users.Select(pair => pair.Value).Where(compiled).FirstOrDefault();
         }
 
-        async Task<int> IRepository<User, int>.Count(CancellationToken cancellationToken)
+        async Task<int> IRepository<User, string>.Count(CancellationToken cancellationToken)
         {
             return _users.Count;
         }
@@ -56,7 +56,7 @@ namespace Advertisement.Infrastructure.DataAccess.Repositories
             return _users.Select(pair => pair.Value).Where(compiled).Count();
         }
 
-        async Task<IEnumerable<User>> IRepository<User, int>.GetPaged(int offset, int limit, CancellationToken cancellationToken)
+        async Task<IEnumerable<User>> IRepository<User, string>.GetPaged(int offset, int limit, CancellationToken cancellationToken)
         {
             return _users
                 .Select(pair => pair.Value)
@@ -92,7 +92,7 @@ namespace Advertisement.Infrastructure.DataAccess.Repositories
             return _ads.Select(pair => pair.Value).Where(compiled).FirstOrDefault();
         }
 
-        async Task<User> IRepository<User, int>.FindById(int id, CancellationToken cancellationToken)
+        async Task<User> IRepository<User, string>.FindById(string id, CancellationToken cancellationToken)
         {
             if (_users.TryGetValue(id, out var user))
             {

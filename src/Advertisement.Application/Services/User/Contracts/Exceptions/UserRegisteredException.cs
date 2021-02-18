@@ -2,11 +2,10 @@
 
 namespace Advertisement.Application.Services.User.Contracts.Exceptions
 {
-    public sealed class UserNotFoundException : NotFoundException
+    public class UserRegisteredException : DomainException
     {
-        public UserNotFoundException(string message) : base(message)
+        public UserRegisteredException(string message) : base(message)
         {
-
         }
     }
 }

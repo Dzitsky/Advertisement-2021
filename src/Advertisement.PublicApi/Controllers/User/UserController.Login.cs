@@ -1,33 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
-using Advertisement.Application.Services.User.Contracts;
-using Advertisement.Application.Services.User.Interfaces;
+using Advertisement.Application.Identity.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Advertisement.PublicApi.Controllers.User
 {
     public partial class UserController
     {
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
-        
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserLoginRequest request, CancellationToken cancellationToken)
         {
-            var token = await _userService.Login(new Login.Request
+            var token = await _identityService.CreateToken(new CreateToken.Request
             {
-                Name = request.UserName,
+                Username = request.UserName,
                 Password = request.Password
             }, cancellationToken);
 
