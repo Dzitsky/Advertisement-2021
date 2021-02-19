@@ -25,8 +25,6 @@ namespace Advertisement.Application.Services.User.Implementations
 
         public async Task<Register.Response> Register(Register.Request registerRequest, CancellationToken cancellationToken)
         {
-            //TODO проверить на дубликаты
-
             var response = await _identityService.CreateUser(
                 new CreateUser.Request
                 {

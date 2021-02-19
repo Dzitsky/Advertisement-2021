@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Advertisement.Application.Identity.Contracts;
+using Advertisement.Application.Identity.Contracts.Exceptions;
 using Advertisement.Application.Identity.Interfaces;
 using Advertisement.Domain.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -40,8 +41,7 @@ namespace Advertisement.Infrastructure.Identity
             var identityUser = await _userManager.FindByIdAsync(userId);
             if (identityUser == null)
             {
-                //TODO Сделать норм Exception
-                throw new Exception("Пользователь не найден");
+                throw new IdentityUserNotFoundException("Пользователь не найден");
             }
 
             return await _userManager.IsInRoleAsync(identityUser, role);
@@ -80,8 +80,7 @@ namespace Advertisement.Infrastructure.Identity
             var identityUser = await _userManager.FindByNameAsync(request.Username);
             if (identityUser == null)
             {
-                //TODO это плохо!!!!!1!11!
-                throw new Exception("Пользователь не найден");
+                throw new IdentityUserNotFoundException("Пользователь не найден");
             }
 
             var passwordCheckResult = await _userManager.CheckPasswordAsync(identityUser, request.Password);
