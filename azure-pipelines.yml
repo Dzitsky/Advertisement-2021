@@ -18,7 +18,7 @@ steps:
   inputs:
     sshEndpoint: 'VPS'
     runOptions: 'inline'
-    inline: 'cd deployment/Advertisment-2021/ && git pull origin master && docker-compose build'
+    inline: 'cd deployment/Advertisement-2021/ && git pull origin master && docker-compose build'
     failOnStdErr: false
     readyTimeout: '20000'
 
@@ -27,6 +27,6 @@ steps:
   inputs:
     sshEndpoint: 'VPS'
     runOptions: 'inline'
-    inline: 'cd deployment/Advertisment-2021/ && git pull origin master && docker-compose up -d'
+    inline: 'cd deployment/Advertisement-2021/ && git pull origin master && docker-compose up -d'
     failOnStdErr: false
     readyTimeout: '20000'
