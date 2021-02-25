@@ -7,11 +7,26 @@ trigger:
 - master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- task: SSH@0
+  displayName: Docker-compose build images
+  inputs:
+    sshEndpoint: 'VPS'
+    runOptions: 'inline'
+    inline: 'cd deployment/Advertisment/ && git pull origin master && docker-compose build'
+    failOnStdErr: false
+    readyTimeout: '20000'
+
+- task: SSH@0
+  displayName: Docker-compose up services
+  inputs:
+    sshEndpoint: 'VPS'
+    runOptions: 'inline'
+    inline: 'cd deployment/Advertisment/ && git pull origin master && docker-compose up -d'
+    failOnStdErr: false
+    readyTimeout: '20000'
