@@ -13,12 +13,17 @@ namespace Advertisement.Infrastructure.DataAccess
             builder.Property(x => x.CreatedAt).IsRequired();
             builder.Property(x => x.UpdatedAt).IsRequired(false);
 
-            builder.Property(x => x.Name)
+            builder.Property(x => x.FirstName)
                 .IsRequired()
-                .HasMaxLength(30);
-
-            builder.Property(x => x.Password)
-                .IsRequired();
+                .HasMaxLength(100)
+                .IsUnicode();
+            builder.Property(x => x.LastName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode();
+            builder.Property(x => x.MiddleName)
+                .HasMaxLength(100)
+                .IsUnicode();
         }
     }
 }

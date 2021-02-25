@@ -33,7 +33,7 @@ namespace Advertisement.Infrastructure
         public static void InMemory(this ModuleConfiguration moduleConfiguration)
         {
             moduleConfiguration.Services.AddSingleton(new InMemoryRepository());
-            moduleConfiguration.Services.AddSingleton<IRepository<User, int>>(sp =>
+            moduleConfiguration.Services.AddSingleton<IRepository<User, string>>(sp =>
                 sp.GetService<InMemoryRepository>());
             moduleConfiguration.Services.AddSingleton<IRepository<Ad, int>>(sp => sp.GetService<InMemoryRepository>());
         }

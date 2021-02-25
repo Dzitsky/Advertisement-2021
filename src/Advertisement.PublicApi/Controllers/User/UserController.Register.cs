@@ -12,8 +12,19 @@ namespace Advertisement.PublicApi.Controllers.User
         public sealed class UserRegisterRequest
         {
             [Required]
-            [MaxLength(30, ErrorMessage = "Максимальная длина имени не должна превышать 30 символов")]
-            public string Name { get; set; }
+            [MaxLength(30, ErrorMessage = "Максимальная длина логина не должна превышать 30 символов")]
+            public string Username { get; set; }
+
+            [Required]
+            [MaxLength(100, ErrorMessage = "Максимальная длина имени не должна превышать 30 символов")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [MaxLength(100, ErrorMessage = "Максимальная длина фамилии не должна превышать 30 символов")]
+            public string LastName { get; set; }
+
+            [MaxLength(100, ErrorMessage = "Максимальная длина отчества не должна превышать 30 символов")]
+            public string MiddleName { get; set; }
             
             [Required]
             public string Password { get; set; }
@@ -23,13 +34,16 @@ namespace Advertisement.PublicApi.Controllers.User
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Register(UserRegisterRequest request, CancellationToken cancellationToken)
         {
-            var user = await _userService.Register(new Register.Request
+            var registrationResult = await _userService.Register(new Register.Request
             {
-                Name = request.Name,
-                Password = request.Password
+                Username = request.Username,
+                Password = request.Password,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                MiddleName = request.MiddleName
             }, cancellationToken);
             
-            return Created($"api/v1/users/{user.UserId}", new {});
+            return Created($"api/v1/users/{registrationResult.UserId}", new {});
         }
     }
 }

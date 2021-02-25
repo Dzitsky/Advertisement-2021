@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Advertisement.Application.Common;
+using Advertisement.Application.Identity.Interfaces;
 using Advertisement.Application.Repositories;
 using Advertisement.Application.Services.Ad.Contracts;
 using Advertisement.Application.Services.Ad.Contracts.Exceptions;
@@ -14,24 +16,22 @@ namespace Advertisement.Application.Services.Ad.Implementations
     public sealed class AdServiceV1 : IAdService
     {
         private readonly IAdRepository _repository;
-        private readonly IUserService _userService;
+        private readonly IIdentityService _identityService;
 
-        public AdServiceV1(IUserService userService, IAdRepository repository)
+        public AdServiceV1(IAdRepository repository, IIdentityService identityService)
         {
-            _userService = userService;
             _repository = repository;
+            _identityService = identityService;
         }
 
         public async Task<Create.Response> Create(Create.Request request, CancellationToken cancellationToken)
         {
-            var user = await _userService.GetCurrent(cancellationToken);
+            var userId = await _identityService.GetCurrentUserId(cancellationToken);
             var ad = new Domain.Ad
             {
-                FirstName = request.Name,
-                LastName = request.Name,
                 Price = request.Price,
                 Status = Domain.Ad.Statuses.Created,
-                OwnerId = user.Id,
+                OwnerId = userId,
                 CreatedAt = DateTime.UtcNow
             };
             await _repository.Save(ad, cancellationToken);
@@ -64,8 +64,10 @@ namespace Advertisement.Application.Services.Ad.Implementations
                 throw new AdNotFoundException(request.Id);
             }
 
-            var user = await _userService.GetCurrent(cancellationToken);
-            if (ad.Owner.Id != user.Id)
+            var userId = await _identityService.GetCurrentUserId(cancellationToken);
+            var isAdmin = await _identityService.IsInRole(userId, RoleConstants.AdminRole, cancellationToken);
+
+            if (!isAdmin && ad.OwnerId != userId)
             {
                 throw new NoRightsException("Нет прав для выполнения операции.");
             }
@@ -85,11 +87,10 @@ namespace Advertisement.Application.Services.Ad.Implementations
             
             return new Get.Response
             {
-                Name = $"{ad.FirstName } {ad.LastName }",
                 Owner = new Get.Response.OwnerResponse
                 {
                     Id = ad.Owner.Id,
-                    Name = ad.Owner.Name
+                    Name = $"{ad.Owner.FirstName} {ad.Owner.LastName} {ad.Owner.MiddleName}".Trim()
                 },
                 Price = ad.Price,
                 Status = ad.Status.ToString()
@@ -123,7 +124,7 @@ namespace Advertisement.Application.Services.Ad.Implementations
                 Items = ads.Select(ad => new GetPaged.Response.AdResponse
                 {
                     Id = ad.Id,
-                    Name = $"{ad.FirstName} {ad.LastName}",
+                    Name = $"TEST",
                     Price = ad.Price,
                     Status = ad.Status.ToString()
                 }),

@@ -22,11 +22,10 @@ namespace Advertisement.Application.Services.Ad.Contracts
         {
             public sealed class OwnerResponse
             {
-                public int Id { get; set; }
+                public string Id { get; set; }
                 public string Name { get; set; }
             }
             
-            public string Name { get; set; }
             public string Status { get; set; }
             public decimal Price { get; set; }
             

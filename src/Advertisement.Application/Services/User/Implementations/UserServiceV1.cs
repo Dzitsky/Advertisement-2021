@@ -1,113 +1,117 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Advertisement.Application.Common;
+using Advertisement.Application.Identity.Contracts;
+using Advertisement.Application.Identity.Interfaces;
 using Advertisement.Application.Repositories;
 using Advertisement.Application.Services.User.Contracts;
 using Advertisement.Application.Services.User.Contracts.Exceptions;
 using Advertisement.Application.Services.User.Interfaces;
 using Advertisement.Domain.Shared.Exceptions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Advertisement.Application.Services.User.Implementations
 {
     public sealed class UserServiceV1 : IUserService
     {
-        private readonly IRepository<Domain.User, int> _repository;
-        private readonly IClaimsAccessor _claimsAccessor;
-        private readonly IConfiguration _configuration;
+        private readonly IRepository<Domain.User, string> _repository;
+        private readonly IIdentityService _identityService;
 
-        public UserServiceV1(IRepository<Domain.User, int> repository,  IConfiguration configuration, IClaimsAccessor claimsAccessor)
+        public UserServiceV1(IRepository<Domain.User, string> repository, IIdentityService identityService)
         {
             _repository = repository;
-            _configuration = configuration;
-            _claimsAccessor = claimsAccessor;
-        }
-
-        public async Task<Domain.User> GetCurrent(CancellationToken cancellationToken)
-        {
-            var claims = await _claimsAccessor.GetClaims(cancellationToken);
-            var id = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return null;
-            }
-
-            var intId = int.Parse(id);
-            var user = await _repository.FindById(intId, cancellationToken);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException(intId);
-            }
-
-            return user;
+            _identityService = identityService;
         }
 
         public async Task<Register.Response> Register(Register.Request registerRequest, CancellationToken cancellationToken)
         {
-            var user = new Domain.User
-            {
-                Name = registerRequest.Name,
-                Password = registerRequest.Password,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var response = await _identityService.CreateUser(
+                new CreateUser.Request
+                {
+                    Username = registerRequest.Username, Password = registerRequest.Password,
+                    Role = RoleConstants.UserRole
+                }, cancellationToken);
 
-            var userInRepo = await _repository.FindWhere(u => u.Name == registerRequest.Name, cancellationToken);
-            if (userInRepo != null)
+            if (response.IsSuccess)
             {
-                throw new ConflictException("Пользователь с таким именем уже зарегестрирован!");
+                var domainUser = new Domain.User
+                {
+                    Id = response.UserId,
+                    FirstName = registerRequest.FirstName,
+                    LastName = registerRequest.LastName,
+                    MiddleName = registerRequest.MiddleName,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _repository.Save(domainUser, cancellationToken);
+
+                return new Register.Response
+                {
+                    UserId = response.UserId
+                };
             }
-            
-            await _repository.Save(user, cancellationToken);
 
-            return new Register.Response
-            {
-                UserId = user.Id
-            };
+            throw new UserRegisteredException(string.Join(';', response.Errors));
         }
 
-        public async Task<Login.Response> Login(Login.Request loginRequest, CancellationToken cancellationToken)
+        public async Task Update(Update.Request request, CancellationToken cancellationToken)
         {
-            var user = await _repository.FindWhere(u => u.Name == loginRequest.Name, cancellationToken);
-            if (user == null)
+            var domainUser = await _repository.FindById(request.Id, cancellationToken);
+            if (domainUser == null)
             {
-                throw new UserNotFoundException(loginRequest.Name);
+                throw new UserNotFoundException($"Пользователь с идентификатором {request.Id} не найден");
             }
 
-            if (!user.Password.Equals(loginRequest.Password))
+            var currentUserId = await _identityService.GetCurrentUserId(cancellationToken);
+            if (domainUser.Id != currentUserId)
             {
                 throw new NoRightsException("Нет прав");
-            }            
-            
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.Name, loginRequest.Name),
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()) 
-            };
-            
-            var token = new JwtSecurityToken
-            (
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(60),
-                notBefore: DateTime.UtcNow,
-                signingCredentials: new SigningCredentials(
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Token:Key"])),
-                    SecurityAlgorithms.HmacSha256
-                )
-            );
+            }
 
-            return new Login.Response
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token)
-            };
+            domainUser.FirstName = request.FirstName;
+            domainUser.LastName = request.LastName;
+            domainUser.MiddleName = request.MiddleName;
+            domainUser.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.Save(domainUser, cancellationToken);
         }
+
+        //public async Task<Login.Response> Login(Login.Request loginRequest, CancellationToken cancellationToken)
+        //{
+        //    //var user = await _repository.FindWhere(u => u.Name == loginRequest.Name, cancellationToken);
+        //    //if (user == null)
+        //    //{
+        //    //    throw new UserNotFoundException(loginRequest.Name);
+        //    //}
+
+        //    //if (!user.Password.Equals(loginRequest.Password))
+        //    //{
+        //    //    throw new NoRightsException("Нет прав");
+        //    //}            
+            
+        //    //var claims = new List<Claim>
+        //    //{
+        //    //    new(ClaimTypes.Name, loginRequest.Name),
+        //    //    new(ClaimTypes.NameIdentifier, user.Id.ToString()) 
+        //    //};
+            
+        //    //var token = new JwtSecurityToken
+        //    //(
+        //    //    claims: claims,
+        //    //    expires: DateTime.UtcNow.AddDays(60),
+        //    //    notBefore: DateTime.UtcNow,
+        //    //    signingCredentials: new SigningCredentials(
+        //    //        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Token:Key"])),
+        //    //        SecurityAlgorithms.HmacSha256
+        //    //    )
+        //    //);
+
+        //    //return new Login.Response
+        //    //{
+        //    //    Token = new JwtSecurityTokenHandler().WriteToken(token)
+        //    //};
+
+        //    throw new NotImplementedException();
+        //}
     }
 }

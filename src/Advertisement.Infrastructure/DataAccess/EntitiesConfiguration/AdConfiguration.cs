@@ -14,8 +14,6 @@ namespace Advertisement.Infrastructure.DataAccess.EntitiesConfiguration
             builder.Property(x => x.CreatedAt).IsRequired();
             builder.Property(x => x.UpdatedAt).IsRequired(false);
                 
-            builder.Property(x => x.FirstName).HasMaxLength(100).IsUnicode();
-            builder.Property(x => x.LastName).HasMaxLength(100).IsUnicode();
             builder.Property(x => x.Price).HasColumnType("money");
 
             builder.Property(x => x.Status)
