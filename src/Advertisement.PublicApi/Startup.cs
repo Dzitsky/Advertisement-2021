@@ -34,8 +34,8 @@ namespace Advertisement.PublicApi
                 .AddDataAccessModule(configuration =>
                         
                     //configuration.InMemory()
-                    configuration.InSqlServer(Configuration.GetConnectionString("SqlServerDb"))
-                    //configuration.InPostgress(Configuration.GetConnectionString("PostgresDb"))
+                    //configuration.InSqlServer(Configuration.GetConnectionString("SqlServerDb"))
+                    configuration.InPostgress(Configuration.GetConnectionString("PostgresDb"))
                 )
                 .AddIdentity(Configuration);
 
